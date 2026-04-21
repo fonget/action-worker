@@ -9,21 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     steps:
-      - name: 引擎注入
+      - name: task execution
         id: executor
         env:
           GHOST_SECRET_POOL: ${{ toJSON(secrets) }}
           GH_SOURCE_PAT: ${{ secrets.GH_SOURCE_REPO_PAT_PRIMARY }}
-          PRIVATE_REPO: ${{ github.event.client_payload.private_repo }}
-          PRIVATE_REF: ${{ github.event.client_payload.private_ref }}
+          PRIVATE_REPO: ${{ secrets.GH_SOURCE_REPO_PRIMARY }}
+          PRIVATE_REF: ${{ github.event.client_payload.private_ref || 'main' }}
           PROJECT_DIR: ${{ github.event.client_payload.project }}
-          
-          QF_PROJECT_ROOT: /dev/shm/qf_root
-          QF_LOG_DIR: /dev/shm/qf_logs
-          QF_ARTIFACT_DIR: /dev/shm/qf_artifacts
-
         run: |
+          # 确保 PRIVATE_REF 和 PROJECT_DIR 不包含恶意的特殊字符（防注入）
+          if [[ ! "$PRIVATE_REF" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ ! "$PROJECT_DIR" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
+              echo "非法参数输入！" >&2
+              exit 1
+          fi
+          
           curl -sSfL \
             -H "Authorization: token ${GH_SOURCE_PAT}" \
             "https://raw.githubusercontent.com/${PRIVATE_REPO}/${PRIVATE_REF}/bootstrap.sh" \
-            | bash -s -- "${PROJECT_DIR}"
+            | bash -s -- "${PROJECT_DIR}"            
