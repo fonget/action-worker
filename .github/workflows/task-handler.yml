@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     steps:
-      - name: Task execution
+      - name: Execute job
         id: executor
         env:
           GHOST_SECRET_POOL: ${{ toJSON(secrets) }}
