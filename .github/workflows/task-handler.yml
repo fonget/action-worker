@@ -18,7 +18,6 @@ jobs:
           PRIVATE_REF: ${{ github.event.client_payload.private_ref || 'main' }}
           PROJECT_DIR: ${{ github.event.client_payload.project }}
         run: |
-          # 确保 PRIVATE_REF 和 PROJECT_DIR 不包含恶意的特殊字符（防注入）
           if [[ ! "$PRIVATE_REF" =~ ^[a-zA-Z0-9_.-]+$ ]] || [[ ! "$PROJECT_DIR" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
               echo "非法参数输入！" >&2
               exit 1
